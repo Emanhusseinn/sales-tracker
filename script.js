@@ -126,33 +126,32 @@ productsEl.addEventListener("click", (e) => {
   }
 });
 
-productsEl.addEventListener("input", (e) => {
+productsEl.addEventListener("input", async (e) => {
   if (e.target.classList.contains("price-input")) {
     const key = e.target.dataset.key;
-    const value = e.target.value;
-    const prices = getPrices();
-    prices[key] = value;
-    savePrices(prices);
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value)) {
+      await updateValue(key, "price", value);
 
-    const quantities = getQuantities();
-    const quantity = quantities[key] || 0;
-    const price = parseFloat(value);
+      const product = dbData[key];
+      product.price = value;
 
-    if (!isNaN(price)) {
-      const subtotal = (quantity * price).toFixed(2);
+      const subtotal = (product.quantity || 0) * value;
       e.target.closest(".product").querySelector(".subtotal").textContent =
-        `Subtotal: ${subtotal} JD`;
-    }
+        `Subtotal: ${subtotal.toFixed(2)} JD`;
 
-    let total = 0;
-    Object.entries(prices).forEach(([k, p]) => {
-      const q = quantities[k] || 0;
-      const num = parseFloat(p);
-      if (!isNaN(num)) total += q * num;
-    });
-    finalTotalEl.textContent = total.toFixed(2);
+      // ✅ احسب final total من جديد
+      let total = 0;
+      Object.values(dbData).forEach(p => {
+        if (p.price && p.quantity) {
+          total += p.price * p.quantity;
+        }
+      });
+      finalTotalEl.textContent = total.toFixed(2);
+    }
   }
 });
+
 
 // Make sure render runs on resize (mobile ↔ desktop)
 window.addEventListener("resize", () => {
