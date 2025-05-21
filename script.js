@@ -93,16 +93,14 @@ function renderProducts(activeTab = 'sweet') {
   productsEl.appendChild(categoriesWrapper);
   finalTotalEl.textContent = finalTotal.toFixed(2);
 
-  // Show/hide categories only on mobile
-  if (window.innerWidth <= 768) {
-    document.querySelectorAll('.category').forEach((cat) => {
-      cat.style.display = cat.dataset.category === activeTab ? 'block' : 'none';
-    });
-  } else {
-    document.querySelectorAll('.category').forEach((cat) => {
-      cat.style.display = 'block';
-    });
-  }
+  document.querySelectorAll('.category').forEach(cat => {
+    if (cat.dataset.category === activeTab) {
+      cat.classList.add("active");
+    } else {
+      cat.classList.remove("active");
+    }
+  });
+  
 }
 
 productsEl.addEventListener("click", (e) => {
