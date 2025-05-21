@@ -73,7 +73,7 @@ function renderProducts(activeTab = 'sweet') {
           <h3>${product.name}</h3>
           <label>
             Price (JD): 
-            <input type="text" inputmode="decimal" pattern="^\\d*(\\.\\d{0,2})?$"
+            <input type="number" step="0.01" min="0"
                    data-key="${key}" value="${price}" class="price-input" />
           </label>
           <div class="counter">
