@@ -37,7 +37,7 @@ function renderProducts(activeTab = 'sweet') {
   let finalTotal = 0;
   productsEl.innerHTML = "";
 
-  // Tabs - only shown on mobile via CSS
+  // Create and show tabs
   const tabs = document.createElement("div");
   tabs.className = "tabs";
   tabs.innerHTML = `
@@ -50,6 +50,7 @@ function renderProducts(activeTab = 'sweet') {
   categoriesWrapper.className = "categories-wrapper";
 
   Object.entries(products).forEach(([category, items]) => {
+    if (category !== activeTab) return;
     const section = document.createElement("div");
     section.className = `category ${category}`;
     section.dataset.category = category;
@@ -73,7 +74,7 @@ function renderProducts(activeTab = 'sweet') {
           <h3>${product.name}</h3>
           <label>
             Price (JD): 
-            <input type="text" inputmode="decimal" pattern="^\\d*(\\.\\d{0,2})?$"
+            <input type="number" step="0.01" min="0"
                    data-key="${key}" value="${price}" class="price-input" />
           </label>
           <div class="counter">
@@ -94,18 +95,24 @@ function renderProducts(activeTab = 'sweet') {
   finalTotalEl.textContent = finalTotal.toFixed(2);
 
   document.querySelectorAll('.category').forEach(cat => {
+    cat.classList.remove("active");
     if (cat.dataset.category === activeTab) {
       cat.classList.add("active");
-    } else {
-      cat.classList.remove("active");
     }
   });
-  
 }
 
 productsEl.addEventListener("click", (e) => {
-  if (e.target.tagName === "BUTTON" && e.target.dataset.action) {
-    const action = e.target.dataset.action;
+  const isButton = e.target.tagName === "BUTTON";
+  const action = e.target.dataset.action;
+  const tab = e.target.dataset.tab;
+
+  if (tab) {
+    renderProducts(tab); // ✅ بس لما أضغط على زر التبويبة
+    return;
+  }
+
+  if (isButton && action) {
     const key = e.target.dataset.key;
     const quantities = getQuantities();
     quantities[key] = quantities[key] || 0;
@@ -117,51 +124,51 @@ productsEl.addEventListener("click", (e) => {
     }
 
     saveQuantities(quantities);
-    const tab = document.querySelector('.tabs .active')?.dataset.tab || 'sweet';
-    renderProducts(tab);
-  }
-
-  if (e.target.dataset.tab) {
-    renderProducts(e.target.dataset.tab);
+    const currentTab = document.querySelector('.tabs .active')?.dataset.tab || 'sweet';
+    renderProducts(currentTab); // ✅ بعد تعديل الكمية فقط
   }
 });
 
-productsEl.addEventListener("input", (e) => {
+
+productsEl.addEventListener("change", (e) => {
   if (e.target.classList.contains("price-input")) {
+    e.stopPropagation();
     const key = e.target.dataset.key;
-    const value = e.target.value;
-    const prices = getPrices();
-    prices[key] = value;
-    savePrices(prices);
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value)) {
+      const prices = getPrices();
+      prices[key] = value;
+      savePrices(prices);
 
-    const quantities = getQuantities();
-    const quantity = quantities[key] || 0;
-    const price = parseFloat(value);
+      const quantities = getQuantities();
+      const quantity = quantities[key] || 0;
 
-    if (!isNaN(price)) {
-      const subtotal = (quantity * price).toFixed(2);
+      const subtotal = quantity * value;
       e.target.closest(".product").querySelector(".subtotal").textContent =
-        `Subtotal: ${subtotal} JD`;
-    }
+        `Subtotal: ${subtotal.toFixed(2)} JD`;
 
-    let total = 0;
-    Object.entries(prices).forEach(([k, p]) => {
-      const q = quantities[k] || 0;
-      const num = parseFloat(p);
-      if (!isNaN(num)) total += q * num;
-    });
-    finalTotalEl.textContent = total.toFixed(2);
+      let total = 0;
+      Object.keys(prices).forEach((k) => {
+        const price = parseFloat(prices[k]);
+        const quantity = quantities[k] || 0;
+        if (!isNaN(price)) {
+          total += price * quantity;
+        }
+      });
+
+      finalTotalEl.textContent = total.toFixed(2);
+    }
   }
 });
 
-// Make sure render runs on resize (mobile ↔ desktop)
-window.addEventListener("resize", () => {
-  const tab = document.querySelector('.tabs .active')?.dataset.tab || 'sweet';
-  renderProducts(tab);
+
+// Re-render tabs on screen resize
+window.addEventListener("DOMContentLoaded", () => {
+  renderProducts('sweet'); // أو 'savory' حسب اللي بدك ياه يظهر أول
 });
 
-renderProducts();
-window.addEventListener("DOMContentLoaded", () => {
-  const tab = document.querySelector('.tabs .active')?.dataset.tab || 'sweet';
-  renderProducts(tab);
-});
+
+// window.addEventListener("DOMContentLoaded", () => {
+//   const tab = document.querySelector('.tabs .active')?.dataset.tab || 'sweet';
+//   renderProducts(tab);
+// });
