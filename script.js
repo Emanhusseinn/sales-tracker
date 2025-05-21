@@ -103,8 +103,16 @@ function renderProducts(activeTab = 'sweet') {
 }
 
 productsEl.addEventListener("click", (e) => {
-  if (e.target.tagName === "BUTTON" && e.target.dataset.action) {
-    const action = e.target.dataset.action;
+  const isButton = e.target.tagName === "BUTTON";
+  const action = e.target.dataset.action;
+  const tab = e.target.dataset.tab;
+
+  if (tab) {
+    renderProducts(tab); // ✅ بس لما أضغط على زر التبويبة
+    return;
+  }
+
+  if (isButton && action) {
     const key = e.target.dataset.key;
     const quantities = getQuantities();
     quantities[key] = quantities[key] || 0;
@@ -116,14 +124,11 @@ productsEl.addEventListener("click", (e) => {
     }
 
     saveQuantities(quantities);
-    const tab = document.querySelector('.tabs .active')?.dataset.tab || 'sweet';
-    renderProducts(tab);
-  }
-
-  if (e.target.dataset.tab) {
-    renderProducts(e.target.dataset.tab);
+    const currentTab = document.querySelector('.tabs .active')?.dataset.tab || 'sweet';
+    renderProducts(currentTab); // ✅ بعد تعديل الكمية فقط
   }
 });
+
 
 productsEl.addEventListener("change", (e) => {
   if (e.target.classList.contains("price-input")) {
@@ -158,12 +163,12 @@ productsEl.addEventListener("change", (e) => {
 
 
 // Re-render tabs on screen resize
-window.addEventListener("resize", () => {
-  const tab = document.querySelector('.tabs .active')?.dataset.tab || 'sweet';
-  renderProducts(tab);
+window.addEventListener("DOMContentLoaded", () => {
+  renderProducts('sweet'); // أو 'savory' حسب اللي بدك ياه يظهر أول
 });
 
-window.addEventListener("DOMContentLoaded", () => {
-  const tab = document.querySelector('.tabs .active')?.dataset.tab || 'sweet';
-  renderProducts(tab);
-});
+
+// window.addEventListener("DOMContentLoaded", () => {
+//   const tab = document.querySelector('.tabs .active')?.dataset.tab || 'sweet';
+//   renderProducts(tab);
+// });
