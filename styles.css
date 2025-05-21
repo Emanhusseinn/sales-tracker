@@ -135,7 +135,7 @@ input::-webkit-inner-spin-button {
   .tabs {
     display: flex;
     justify-content: center;
-    margin-bottom: 1rem;
+    margin: 1rem;
     gap: 1rem;
   }
 
@@ -145,10 +145,11 @@ input::-webkit-inner-spin-button {
     background: #eee;
     cursor: pointer;
     border-radius: 6px;
+    font-size: 20px;
   }
 
   .tabs button.active {
-    background: #333;
+    background: #315136;
     color: #fff;
   }
 
