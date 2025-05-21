@@ -132,12 +132,14 @@ input::-webkit-inner-spin-button {
     flex-direction: column;
   }
 
-  .tabs {
-    display: flex;
-    justify-content: center;
-    margin: 1rem;
-    gap: 1rem;
-  }
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 
   .tabs button {
     padding: 0.5rem 1rem;

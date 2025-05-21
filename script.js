@@ -37,7 +37,7 @@ function renderProducts(activeTab = 'sweet') {
   let finalTotal = 0;
   productsEl.innerHTML = "";
 
-  // Tabs - only shown on mobile via CSS
+  // Create and show tabs
   const tabs = document.createElement("div");
   tabs.className = "tabs";
   tabs.innerHTML = `
@@ -50,6 +50,7 @@ function renderProducts(activeTab = 'sweet') {
   categoriesWrapper.className = "categories-wrapper";
 
   Object.entries(products).forEach(([category, items]) => {
+    if (category !== activeTab) return;
     const section = document.createElement("div");
     section.className = `category ${category}`;
     section.dataset.category = category;
@@ -94,13 +95,11 @@ function renderProducts(activeTab = 'sweet') {
   finalTotalEl.textContent = finalTotal.toFixed(2);
 
   document.querySelectorAll('.category').forEach(cat => {
+    cat.classList.remove("active");
     if (cat.dataset.category === activeTab) {
       cat.classList.add("active");
-    } else {
-      cat.classList.remove("active");
     }
   });
-  
 }
 
 productsEl.addEventListener("click", (e) => {
@@ -126,40 +125,44 @@ productsEl.addEventListener("click", (e) => {
   }
 });
 
-productsEl.addEventListener("input", async (e) => {
+productsEl.addEventListener("change", (e) => {
   if (e.target.classList.contains("price-input")) {
+    e.stopPropagation();
     const key = e.target.dataset.key;
     const value = parseFloat(e.target.value);
     if (!isNaN(value)) {
-      await updateValue(key, "price", value);
+      const prices = getPrices();
+      prices[key] = value;
+      savePrices(prices);
 
-      const product = dbData[key];
-      product.price = value;
+      const quantities = getQuantities();
+      const quantity = quantities[key] || 0;
 
-      const subtotal = (product.quantity || 0) * value;
+      const subtotal = quantity * value;
       e.target.closest(".product").querySelector(".subtotal").textContent =
         `Subtotal: ${subtotal.toFixed(2)} JD`;
 
-      // ✅ احسب final total من جديد
       let total = 0;
-      Object.values(dbData).forEach(p => {
-        if (p.price && p.quantity) {
-          total += p.price * p.quantity;
+      Object.keys(prices).forEach((k) => {
+        const price = parseFloat(prices[k]);
+        const quantity = quantities[k] || 0;
+        if (!isNaN(price)) {
+          total += price * quantity;
         }
       });
+
       finalTotalEl.textContent = total.toFixed(2);
     }
   }
 });
 
 
-// Make sure render runs on resize (mobile ↔ desktop)
+// Re-render tabs on screen resize
 window.addEventListener("resize", () => {
   const tab = document.querySelector('.tabs .active')?.dataset.tab || 'sweet';
   renderProducts(tab);
 });
 
-renderProducts();
 window.addEventListener("DOMContentLoaded", () => {
   const tab = document.querySelector('.tabs .active')?.dataset.tab || 'sweet';
   renderProducts(tab);
